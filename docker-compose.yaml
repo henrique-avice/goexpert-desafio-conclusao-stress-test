@@ -1,0 +1,23 @@
+services:
+  target-server:
+    image: mccutchen/go-httpbin:latest
+    container_name: stress-target
+    ports:
+      - "8081:8080"
+    networks:
+      - stress-network
+  stress-test:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: stress-tester
+    depends_on:
+      target-server:
+        condition: service_started
+    command: [ "--url=http://target-server:8080/status/200", "--requests=100", "--concurrency=10", "--timeout=30", "--verbose" ]
+    networks:
+      - stress-network
+
+networks:
+  stress-network:
+    driver: bridge
